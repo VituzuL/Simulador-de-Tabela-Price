@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Tabela Price</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0822b4;
+            color: #333;
+            line-height: 1.6;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        .card {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .input-group {
+            margin-bottom: 12px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+        }
+        
+        input:read-only {
+            background-color: #f5f5f5;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .tarifas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .tarifa-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        
+        .tarifa-titulo {
+            font-weight: 600;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .tarifa-valor {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-size: 0.85rem;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #e9f7fe;
+        }
+        
+        .total-row {
+            font-weight: 700;
+            background-color: #d4edff;
+        }
+        
+        .periodo-zero {
+            background-color: #fff8e1;
+        }
+        
+        .carencia-row {
+            background-color: #fff0f0;
+        }
+        
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            .container {
+                padding: 30px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 30px;
+            }
+            
+            .input-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .tarifas {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+            }
+            
+            th, td {
+                padding: 14px 12px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .input-section {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .tarifas {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulador de Tabela Price</h1>
+        
+        <div class="card">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="valorLiberado">Valor Liberado (R$)</label>
+                    <input type="number" id="valorLiberado" min="0" step="1000" value="100000">
+                </div>
+                
+                <div class="input-group">
+                    <label for="custoLaqus">Custo Laqus (%)</label>
+                    <input type="number" id="custoLaqus" value="0.3" step="0.01" readonly>
+                </div>
+                
+                <div class="input-group">
+                    <label for="dataEmissao">Data de Emissão</label>
+                    <input type="date" id="dataEmissao">
+                </div>
+                
+                <div class="input-group">
+                    <label for="carencia">Carência Amort. (meses)</label>
+                    <input type="number" id="carencia" min="0" value="0" step="1">
+                </div>
+                
+                <div class="input-group">
+                    <label for="taxaMes">Taxa (mês %)</label>
+                    <input type="number" id="taxaMes" min="0" step="0.01" value="1.5">
+                </div>
+                
+                <div class="input-group">
+                    <label for="taxaAno">Taxa (ano %)</label>
+                    <input type="number" id="taxaAno" step="0.01" readonly>
+                </div>
+                
+                <div class="input-group">
+                    <label for="prazo">Prazo (meses)</label>
+                    <input type="number" id="prazo" min="1" value="12" step="1">
+                </div>
+                
+                <div class="input-group">
+                    <label for="pmt">PMT (Valor da Parcela)</label>
+                    <input type="number" id="pmt" step="0.01" readonly>
+                </div>
+            </div>
+            
+            <button id="calcular">Calcular Tabela Price</button>
+        </div>
+        
+        <div class="tarifas">
+            <div class="tarifa-item">
+                <div class="tarifa-titulo">Custo Hemera (R$)</div>
+                <div class="tarifa-valor" id="custoHemera">R$ 0,00</div>
+            </div>
+            
+            <div class="tarifa-item">
+                <div class="tarifa-titulo">Estruturação (R$)</div>
+                <div class="tarifa-valor" id="estruturacao">R$ 0,00</div>
+            </div>
+            
+            <div class="tarifa-item">
+                <div class="tarifa-titulo">Registro (R$)</div>
+                <div class="tarifa-valor" id="registro">R$ 0,00</div>
+            </div>
+            
+            <div class="tarifa-item">
+                <div class="tarifa-titulo">Depósito (R$)</div>
+                <div class="tarifa-valor" id="deposito">R$ 0,00</div>
+            </div>
+            
+            <div class="tarifa-item">
+                <div class="tarifa-titulo">Volume Total (R$)</div>
+                <div class="tarifa-valor" id="volumeTotal">R$ 0,00</div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="tabelaPrice">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Data</th>
+                        <th>DC</th>
+                        <th>PMT</th>
+                        <th>Fator</th>
+                        <th>Juros</th>
+                        <th>Amortização</th>
+                        <th>% Amortização</th>
+                        <th>Saldo Devedor</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaCorpo">
+                    <!-- Os dados da tabela serão inseridos aqui via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Definir data de emissão padrão para hoje
+            const hoje = new Date();
+            const dataFormatada = hoje.toISOString().split('T')[0];
+            document.getElementById('dataEmissao').value = dataFormatada;
+            
+            // Calcular taxa anual quando a taxa mensal for alterada
+            document.getElementById('taxaMes').addEventListener('input', calcularTaxaAnual);
+            
+            // Calcular PMT automaticamente quando os valores mudarem
+            document.getElementById('valorLiberado').addEventListener('input', calcularPmt);
+            document.getElementById('prazo').addEventListener('input', calcularPmt);
+            document.getElementById('taxaMes').addEventListener('input', calcularPmt);
+            document.getElementById('carencia').addEventListener('input', calcularPmt);
+            
+            // Calcular tarifas quando o valor liberado for alterado
+            document.getElementById('valorLiberado').addEventListener('input', calcularTarifas);
+            
+            // Botão calcular
+            document.getElementById('calcular').addEventListener('click', function() {
+                calcularTarifas();
+                calcularTabela();
+            });
+            
+            // Calcular valores iniciais
+            calcularTaxaAnual();
+            calcularTarifas();
+            calcularPmt();
+            
+            function calcularTaxaAnual() {
+                const taxaMes = parseFloat(document.getElementById('taxaMes').value) / 100;
+                const taxaAno = (Math.pow(1 + taxaMes, 12) - 1) * 100;
+                document.getElementById('taxaAno').value = taxaAno.toFixed(6);
+            }
+            
+            function calcularPmt() {
+                const valorLiberado = parseFloat(document.getElementById('valorLiberado').value);
+                const prazo = parseInt(document.getElementById('prazo').value);
+                const taxaMes = parseFloat(document.getElementById('taxaMes').value) / 100;
+                const carencia = parseInt(document.getElementById('carencia').value);
+                
+                if (valorLiberado > 0 && prazo > 0 && taxaMes >= 0) {
+                    // Fórmula da Tabela Price: PMT = PV * [i * (1+i)^n] / [(1+i)^n - 1]
+                    // Onde n é o número de parcelas (prazo - carência)
+                    const n = prazo - carencia;
+                    if (n > 0) {
+                        const pmt = valorLiberado * (taxaMes * Math.pow(1 + taxaMes, n)) / (Math.pow(1 + taxaMes, n) - 1);
+                        document.getElementById('pmt').value = pmt.toFixed(2);
+                    } else {
+                        document.getElementById('pmt').value = "0.00";
+                    }
+                }
+            }
+            
+            function calcularTarifas() {
+                const valorLiberado = parseFloat(document.getElementById('valorLiberado').value);
+                const custoLaqus = parseFloat(document.getElementById('custoLaqus').value) / 100;
+                
+                // Custo Hemera (agora apenas valorLiberado * custoLaqus)
+                const custoHemera = valorLiberado * custoLaqus;
+                document.getElementById('custoHemera').textContent = `R$ ${custoHemera.toFixed(2)}`;
+                
+                // Estruturação (1%)
+                const estruturacao = valorLiberado * 0.01;
+                document.getElementById('estruturacao').textContent = `R$ ${estruturacao.toFixed(2)}`;
+                
+                // Registro (sempre 0)
+                document.getElementById('registro').textContent = 'R$ 0,00';
+                
+                // Depósito (0.028%)
+                const deposito = valorLiberado * 0.00028;
+                document.getElementById('deposito').textContent = `R$ ${deposito.toFixed(2)}`;
+                
+                // Volume Total
+                const volumeTotal = valorLiberado + custoHemera + estruturacao + deposito;
+                document.getElementById('volumeTotal').textContent = `R$ ${volumeTotal.toFixed(2)}`;
+            }
+            
+            function calcularTabela() {
+                const valorLiberado = parseFloat(document.getElementById('valorLiberado').value);
+                const dataEmissao = new Date(document.getElementById('dataEmissao').value);
+                const prazo = parseInt(document.getElementById('prazo').value);
+                const carencia = parseInt(document.getElementById('carencia').value);
+                const taxaMes = parseFloat(document.getElementById('taxaMes').value) / 100;
+                const taxaAno = parseFloat(document.getElementById('taxaAno').value) / 100;
+                const pmt = parseFloat(document.getElementById('pmt').value);
+                
+                // Calcular tarifas para obter o volume total
+                const custoLaqus = parseFloat(document.getElementById('custoLaqus').value) / 100;
+                const custoHemera = valorLiberado * custoLaqus;
+                const estruturacao = valorLiberado * 0.01;
+                const deposito = valorLiberado * 0.00028;
+                const volumeTotal = valorLiberado + custoHemera + estruturacao + deposito;
+                
+                const tabelaCorpo = document.getElementById('tabelaCorpo');
+                tabelaCorpo.innerHTML = '';
+                
+                // Período 0 (zero)
+                let saldoDevedor = volumeTotal;
+                let dataVencimento = new Date(dataEmissao);
+                
+                let rowZero = document.createElement('tr');
+                rowZero.className = 'periodo-zero';
+                rowZero.innerHTML = `
+                    <td>0</td>
+                    <td>${formatarData(dataVencimento)}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>R$ ${saldoDevedor.toFixed(2)}</td>
+                `;
+                tabelaCorpo.appendChild(rowZero);
+                
+                // Calcular parcelas
+                let totalJuros = 0;
+                let totalAmortizacao = 0;
+                let totalPmt = 0;
+                
+                for (let i = 1; i <= prazo; i++) {
+                    // Calcular data de vencimento (um mês após a emissão para a primeira parcela)
+                    dataVencimento = new Date(dataEmissao);
+                    dataVencimento.setMonth(dataVencimento.getMonth() + i);
+                    
+                    // Calcular dias entre as datas (DC)
+                    const dataAnterior = new Date(dataEmissao);
+                    dataAnterior.setMonth(dataAnterior.getMonth() + i - 1);
+                    const dc = Math.floor((dataVencimento - dataAnterior) / (1000 * 60 * 60 * 24));
+                    
+                    // Calcular fator
+                    const fator = Math.pow(1 + taxaAno, dc / 360);
+                    
+                    // Calcular juros (após o período de carência)
+                    let juros = 0;
+                    let amortizacao = 0;
+                    let valorPmt = 0;
+                    let percentAmortizacao = 0;
+                    
+                    if (i > carencia) {
+                        // Após a carência: calcular juros, amortização e PMT normalmente
+                        juros = (fator - 1) * saldoDevedor;
+                        amortizacao = pmt - juros;
+                        valorPmt = pmt;
+                        percentAmortizacao = amortizacao / saldoDevedor;
+                        
+                        // Atualizar saldo devedor
+                        saldoDevedor -= amortizacao;
+                        if (saldoDevedor < 0) saldoDevedor = 0;
+                    } else {
+                        // Durante a carência: não há pagamentos
+                        juros = 0;
+                        amortizacao = 0;
+                        valorPmt = 0;
+                        percentAmortizacao = 0;
+                        // O saldo devedor permanece o mesmo durante a carência
+                    }
+                    
+                    // Adicionar totais
+                    totalJuros += juros;
+                    totalAmortizacao += amortizacao;
+                    totalPmt += valorPmt;
+                    
+                    const row = document.createElement('tr');
+                    if (i <= carencia) {
+                        row.className = 'carencia-row';
+                    }
+                    row.innerHTML = `
+                        <td>${i}</td>
+                        <td>${formatarData(dataVencimento)}</td>
+                        <td>${dc}</td>
+                        <td>${valorPmt > 0 ? 'R$ ' + valorPmt.toFixed(2) : '-'}</td>
+                        <td>${fator.toFixed(6)}</td>
+                        <td>${juros > 0 ? 'R$ ' + juros.toFixed(2) : '-'}</td>
+                        <td>${amortizacao > 0 ? 'R$ ' + amortizacao.toFixed(2) : '-'}</td>
+                        <td>${percentAmortizacao > 0 ? (percentAmortizacao * 100).toFixed(2) + '%' : '-'}</td>
+                        <td>R$ ${saldoDevedor.toFixed(2)}</td>
+                    `;
+                    tabelaCorpo.appendChild(row);
+                }
+                
+                // Adicionar linha de totais
+                const totalRow = document.createElement('tr');
+                totalRow.className = 'total-row';
+                totalRow.innerHTML = `
+                    <td colspan="3">TOTAIS</td>
+                    <td>R$ ${totalPmt.toFixed(2)}</td>
+                    <td>-</td>
+                    <td>R$ ${totalJuros.toFixed(2)}</td>
+                    <td>R$ ${totalAmortizacao.toFixed(2)}</td>
+                    <td>-</td>
+                    <td>-</td>
+                `;
+                tabelaCorpo.appendChild(totalRow);
+            }
+            
+            function formatarData(data) {
+                return data.toLocaleDateString('pt-BR');
+            }
+        });
+    </script>
+</body>
+</html>
