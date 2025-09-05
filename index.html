@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Tabela Price</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -13,7 +15,7 @@
         }
         
         body {
-            background-color: #0822b4;
+            background-color: #0214b8;
             color: #333;
             line-height: 1.6;
             padding: 15px;
@@ -76,9 +78,15 @@
             background-color: #f5f5f5;
         }
         
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
         button {
-            background: #3498db;
-            color: white;
+            color: rgb(108, 240, 240);
             border: none;
             padding: 16px;
             border-radius: 8px;
@@ -86,12 +94,24 @@
             font-size: 1rem;
             font-weight: 600;
             transition: background 0.3s;
-            width: 100%;
-            margin-top: 10px;
+            flex: 1;
+            min-width: 200px;
         }
         
-        button:hover {
+        #calcular {
+            background: #42d1e4;
+        }
+        
+        #calcular:hover {
             background: #2980b9;
+        }
+        
+        #exportarPDF {
+            background: #df4416;
+        }
+        
+        #exportarPDF:hover {
+            background: #e99c44;
         }
         
         .tarifas {
@@ -143,7 +163,7 @@
         }
         
         th {
-            background-color: #3498db;
+            background-color: #050505;
             color: white;
             font-weight: 600;
             position: sticky;
@@ -212,14 +232,14 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="conteudoParaExportar">
         <h1>Simulador de Tabela Price</h1>
         
         <div class="card">
             <div class="input-section">
                 <div class="input-group">
                     <label for="valorLiberado">Valor Liberado (R$)</label>
-                    <input type="number" id="valorLiberado" min="0" step="1000" value="100000">
+                    <input type="number" id="valorLiberado" min="0" step="10000" value="500000">
                 </div>
                 
                 <div class="input-group">
@@ -239,7 +259,7 @@
                 
                 <div class="input-group">
                     <label for="taxaMes">Taxa (mês %)</label>
-                    <input type="number" id="taxaMes" min="0" step="0.01" value="1.5">
+                    <input type="number" id="taxaMes" min="0" step="0.01" value="1.2">
                 </div>
                 
                 <div class="input-group">
@@ -258,7 +278,10 @@
                 </div>
             </div>
             
-            <button id="calcular">Calcular Tabela Price</button>
+            <div class="button-group">
+                <button id="calcular">Calcular Tabela Price</button>
+                <button id="exportarPDF">Exportar como PDF</button>
+            </div>
         </div>
         
         <div class="tarifas">
@@ -334,6 +357,9 @@
                 calcularTarifas();
                 calcularTabela();
             });
+            
+            // Botão exportar PDF
+            document.getElementById('exportarPDF').addEventListener('click', exportToPDF);
             
             // Calcular valores iniciais
             calcularTaxaAnual();
@@ -510,6 +536,32 @@
             
             function formatarData(data) {
                 return data.toLocaleDateString('pt-BR');
+            }
+            
+            function exportToPDF() {
+                // Inicializa o jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Captura o elemento que deseja converter para PDF
+                const element = document.getElementById('conteudoParaExportar');
+                
+                // Usa html2canvas para capturar o conteúdo como imagem
+                html2canvas(element, {
+                    scale: 2, // Melhora a qualidade
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = doc.internal.pageSize.getWidth();
+                    let imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    // Adiciona a imagem ao PDF
+                    doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    
+                    // Salva o PDF
+                    doc.save('simulador-tabela-price.pdf');
+                });
             }
         });
     </script>
